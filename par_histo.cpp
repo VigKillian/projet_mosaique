@@ -43,14 +43,14 @@ int main(int argc, char* argv[])
   
   for(int i=1;i<=NB_BASE_DE_DONNEE;i++){
     OCTET *ImgIn_tile;
+    std::array<int,256> histo{0};
     int nH_tile,nW_tile,nTaille_tile;
     loadImagette(i,ImgIn_tile,nH_tile,nW_tile,nTaille_tile);
-    float sum_tile = 0.f;
-    for(int j=0;j<nTaille_tile;j++){
-      sum_tile += ImgIn_tile[j];
+    for(int j = 0;j<nTaille_tile;j++){
+      histo[ImgIn_tile[j]]++;
     }
-    sum_tile /=float(nTaille_tile);
-    imagettes.push_back({i,sum_tile,std::array<int, 256>{},0}); // charger information : ID: i , moyen: sum , isUsed: not
+
+    imagettes.push_back({i,0.f,histo,0}); // charger information : ID: i , moyen: sum , isUsed: not
     free(ImgIn_tile);
   }
 
@@ -59,33 +59,35 @@ int main(int argc, char* argv[])
   for(int i=0;i<=nH-taile_tile;i+=taile_tile){
     for(int j=0;j<=nW-taile_tile;j+=taile_tile){
       int pixel_0 = i*nW+j;
-      float sum = 0.f;
+      std::array<int,256> histo_local{0};      
       for(int k=0;k<taile_tile;k++){
         for(int p=0;p<taile_tile;p++){
-          sum += ImgIn[pixel_0+k*nW+p];
+          // sum += ImgIn[pixel_0+k*nW+p];
+          histo_local[ImgIn[pixel_0+k*nW+p]]++;
         }
       }
-      sum/=(float)(taile_tile*taile_tile);
 
-      float diff_min = FLT_MAX;
+      float min = FLT_MAX;
       int best_imagette_id = -1;
 
       for(Imagette &imagette : imagettes){
-          float diff = fabs(imagette.moyen-sum);
-          if(diff<diff_min && !imagette.isUsed){
-            diff_min = diff;
-            best_imagette_id = imagette.ID;
-            // je peux pas mettre a jour isUsed ici! si non avant trouver le diff_min je vais peut-etre mettre tous imagette.isUsed a 1!
-            //imagette.isUsed = 1; 
+        float res = 0.f;
+        for(int cou=0;cou<256;cou++){
+          res +=(float)sqrt(histo_local[cou]*imagette.histo[cou]);
+        }
+        res = -log(res);
+        if(res<min){
+          min = res;
+          best_imagette_id = imagette.ID;
         }
       }
       // faut mettre a jour ici
-      for(Imagette &imagette : imagettes){
-        if(imagette.ID == best_imagette_id){
-          imagette.isUsed = 1;
-          break; 
-        }
-      }
+      // for(Imagette &imagette : imagettes){
+      //   if(imagette.ID == best_imagette_id){
+      //     imagette.isUsed = 1;
+      //     break; 
+      //   }
+      // }
       OCTET *ImgOut_imagette;
       OCTET *ImgIn_tile;
       int nH_tile,nW_tile,nTaille_tile;

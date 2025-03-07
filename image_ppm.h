@@ -10,6 +10,7 @@
 #include <math.h>
 #include <string>
 #include <iostream>
+#include <array>
 using namespace std;
 
 #define allocation_tableau(nom, type, nombre) \
@@ -264,10 +265,11 @@ void loadImagette(int id_imagette,OCTET*& ImgIn_tile,int& nH_tile,int& nW_tile,i
 struct Imagette{
   int ID;
   float moyen;
+  std::array<int, 256> histo;
   bool isUsed;
 
     // constructeur par defaut
-  Imagette(int id=0, float moy = 0.f, bool is_used = 0):
-    ID(id),moyen(moy),isUsed(is_used){}
+  Imagette(int id=0, float moy = 0.f,std::array<int, 256> his = {0}, bool is_used = 0):
+    ID(id),moyen(moy),histo(his),isUsed(is_used){}
 };
 /*===========================================================================*/
