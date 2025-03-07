@@ -6,18 +6,19 @@
 #include <string>
 #include <algorithm>
 #include <map>
+#include <vector>
 #include <cmath>
 #include <float.h>
 #define NB_BASE_DE_DONNEE 10000
 using namespace std;
 
 
-
 int main(int argc, char* argv[])
 {
   char cNomImgLue[250], cNomImgEcrite[250];
   int nH, nW, nTaille, taile_tile;
-  float moy_tile[NB_BASE_DE_DONNEE];
+  // float moy_tile[NB_BASE_DE_DONNEE][2]; 
+  std::vector<Imagette> imagettes;
 
   if (argc != 4) 
     {
@@ -49,7 +50,7 @@ int main(int argc, char* argv[])
       sum_tile += ImgIn_tile[j];
     }
     sum_tile /=float(nTaille_tile);
-    moy_tile[i] = sum_tile;
+    imagettes.push_back({i,sum_tile,0}); // charger information : ID: i , moyen: sum , isUsed: not
     free(ImgIn_tile);
   }
 
@@ -68,12 +69,21 @@ int main(int argc, char* argv[])
 
       float diff_min = FLT_MAX;
       int best_imagette_id = -1;
-      for(int k=1;k<=NB_BASE_DE_DONNEE;k++)
-      {
-        float diff = fabs(moy_tile[k]-sum);
-        if(diff<diff_min){
-          diff_min = diff;
-          best_imagette_id = k;
+
+      for(Imagette &imagette : imagettes){
+          float diff = fabs(imagette.moyen-sum);
+          if(diff<diff_min && !imagette.isUsed){
+            diff_min = diff;
+            best_imagette_id = imagette.ID;
+            // je peux pas mettre a jour isUsed ici! si non avant trouver le diff_min je vais peut-etre mettre tous imagette.isUsed a 1!
+            //imagette.isUsed = 1; 
+        }
+      }
+      // faut mettre a jour ici
+      for(Imagette &imagette : imagettes){
+        if(imagette.ID == best_imagette_id){
+          imagette.isUsed = 1;
+          break; 
         }
       }
       OCTET *ImgOut_imagette;
