@@ -8,9 +8,21 @@
 #include <array>
 #include <cmath>
 #include <float.h>
+#include <chrono>
 #define NB_BASE_DE_DONNEE 10000
 using namespace std;
 
+double calculer_PSNR(OCTET* ImgOriginale, OCTET* ImgReconstruite, int nTaille) {
+    double mse = 0.0;
+    for (int i = 0; i < nTaille; i++) {
+        double diff = ImgOriginale[i] - ImgReconstruite[i];
+        mse += diff * diff;
+    }
+    mse /= nTaille;
+    if (mse == 0) return INFINITY;
+    double psnr = 10 * log10((255.0 * 255.0) / mse);
+    return psnr;
+}
 
 int main(int argc, char* argv[])
 {
@@ -23,6 +35,8 @@ int main(int argc, char* argv[])
       printf("Usage: ImageIn.pgm ImageOut.pgm taille_bloc \n"); 
       exit (1) ;
     }
+
+  std::chrono::time_point<std::chrono::high_resolution_clock> _t0 = std::chrono::high_resolution_clock::now();
 
   sscanf (argv[1],"%s",cNomImgLue) ;
   sscanf (argv[2],"%s",cNomImgEcrite);
@@ -101,6 +115,11 @@ int main(int argc, char* argv[])
       free(ImgOut_imagette);
     }
   }
+
+  std::chrono::time_point<std::chrono::high_resolution_clock> _t1 = std::chrono::high_resolution_clock::now();
+  std::cout << "Photo-mosaïque produite en : "<<std::chrono::duration<double>(_t1-_t0).count() << "s" << std::endl;
+
+  std::cout<<"PSNR par rapport à l'image d'entrée : "<<calculer_PSNR(ImgIn, ImgOut, nTaille)<<"dB"<<std::endl;
 
   ecrire_image_pgm(cNomImgEcrite, ImgOut, nH, nW);
   free(ImgIn);
