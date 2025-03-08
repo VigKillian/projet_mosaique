@@ -1,5 +1,3 @@
-// test_couleur.cpp : Seuille une image en niveau de gris
-
 #include <stdio.h>
 #include "image_ppm.h"
 #include <iostream>
@@ -7,6 +5,7 @@
 #include <algorithm>
 #include <map>
 #include <vector>
+#include <array>
 #include <cmath>
 #include <float.h>
 #define NB_BASE_DE_DONNEE 10000
@@ -16,19 +15,18 @@ using namespace std;
 int main(int argc, char* argv[])
 {
   char cNomImgLue[250], cNomImgEcrite[250];
-  int nH, nW, nTaille, taile_tile;
-  // float moy_tile[NB_BASE_DE_DONNEE][2]; 
-  std::vector<Imagette> imagettes;
+  int nH, nW, nTaille, tailleBloc;
+  std::vector<Imagette> listeImagettes;
 
   if (argc != 4) 
     {
-      printf("Usage: ImageIn.pgm ImageOut.pgm taille_tile \n"); 
+      printf("Usage: ImageIn.pgm ImageOut.pgm taille_bloc \n"); 
       exit (1) ;
     }
 
   sscanf (argv[1],"%s",cNomImgLue) ;
   sscanf (argv[2],"%s",cNomImgEcrite);
-  sscanf (argv[3],"%d",&taile_tile);
+  sscanf (argv[3],"%d",&tailleBloc);
 
   OCTET *ImgIn, *ImgOut;
 
@@ -39,73 +37,79 @@ int main(int argc, char* argv[])
   lire_image_pgm(cNomImgLue, ImgIn, nH * nW);
   allocation_tableau(ImgOut, OCTET, nTaille);
 
-  //lire biblio des images
-  
-  for(int i=1;i<=NB_BASE_DE_DONNEE;i++){
-    OCTET *ImgIn_tile;
-    int nH_tile,nW_tile,nTaille_tile;
-    loadImagette(i,ImgIn_tile,nH_tile,nW_tile,nTaille_tile);
-    float sum_tile = 0.f;
-    for(int j=0;j<nTaille_tile;j++){
-      sum_tile += ImgIn_tile[j];
+  // Charger les imagettes et calculer leur moyenne de luminosité
+  for(int idImagette = 1; idImagette <= NB_BASE_DE_DONNEE; idImagette++){
+    OCTET *ImgIn_imagette;
+    int nH_imagette, nW_imagette, nTaille_imagette;
+    
+    loadImagette(idImagette, ImgIn_imagette, nH_imagette, nW_imagette, nTaille_imagette);
+    
+    float moyenneImagette = 0.f;
+    for(int j = 0; j < nTaille_imagette; j++){
+      moyenneImagette += ImgIn_imagette[j];
     }
-    sum_tile /=float(nTaille_tile);
-    imagettes.push_back({i,sum_tile,std::array<int, 256>{},0}); // charger information : ID: i , moyen: sum , isUsed: not
-    free(ImgIn_tile);
+    moyenneImagette /= float(nTaille_imagette);
+
+    listeImagettes.push_back({idImagette, moyenneImagette, std::array<int, 256>{}, 0});
+    free(ImgIn_imagette);
   }
 
+  // Remplacement des blocs de l'image originale
+  for(int i = 0; i <= nH - tailleBloc; i += tailleBloc){
+    for(int j = 0; j <= nW - tailleBloc; j += tailleBloc){
+      int pixelDepart = i * nW + j;
+      float moyenneBloc = 0.f;
 
-  // Partie l'image originale
-  for(int i=0;i<=nH-taile_tile;i+=taile_tile){
-    for(int j=0;j<=nW-taile_tile;j+=taile_tile){
-      int pixel_0 = i*nW+j;
-      float sum = 0.f;
-      for(int k=0;k<taile_tile;k++){
-        for(int p=0;p<taile_tile;p++){
-          sum += ImgIn[pixel_0+k*nW+p];
+      for(int k = 0; k < tailleBloc; k++){
+        for(int p = 0; p < tailleBloc; p++){
+          moyenneBloc += ImgIn[pixelDepart + k * nW + p];
         }
       }
-      sum/=(float)(taile_tile*taile_tile);
+      moyenneBloc /= float(tailleBloc * tailleBloc);
 
-      float diff_min = FLT_MAX;
+      float differenceMin = FLT_MAX;
       int best_imagette_id = -1;
 
-      for(Imagette &imagette : imagettes){
-          float diff = fabs(imagette.moyen-sum);
-          if(diff<diff_min && !imagette.isUsed){
-            diff_min = diff;
-            best_imagette_id = imagette.ID;
-            // je peux pas mettre a jour isUsed ici! si non avant trouver le diff_min je vais peut-etre mettre tous imagette.isUsed a 1!
-            //imagette.isUsed = 1; 
+      for(Imagette &imagette : listeImagettes){
+        float differenceActuelle = fabs(imagette.moyen - moyenneBloc);
+        if(differenceActuelle < differenceMin && !imagette.isUsed){
+          differenceMin = differenceActuelle;
+          best_imagette_id = imagette.ID;
         }
       }
-      // faut mettre a jour ici
-      for(Imagette &imagette : imagettes){
+
+      // Mise à jour de l'état utilisé
+      for(Imagette &imagette : listeImagettes){
         if(imagette.ID == best_imagette_id){
           imagette.isUsed = 1;
           break; 
         }
       }
+
+      // Charger l'imagette sélectionnée et la réduire si nécessaire
       OCTET *ImgOut_imagette;
-      OCTET *ImgIn_tile;
-      int nH_tile,nW_tile,nTaille_tile;
-      loadImagette(best_imagette_id,ImgIn_tile,nH_tile,nW_tile,nTaille_tile);
-      allocation_tableau(ImgOut_imagette, OCTET, taile_tile*taile_tile);
-      resize_imagette(ImgIn_tile,nH_tile,nW_tile,ImgOut_imagette,taile_tile,taile_tile);
+      OCTET *ImgIn_imagette;
+      int nH_imagette, nW_imagette, nTaille_imagette;
       
-      //  remplacer les pixels de bloc par les pixels d'imagettes
-      for(int k=0;k<taile_tile;k++){
-        for(int p=0;p<taile_tile;p++){
-          ImgOut[pixel_0+k*nW+p] = ImgOut_imagette[k*taile_tile+p];
+      loadImagette(best_imagette_id, ImgIn_imagette, nH_imagette, nW_imagette, nTaille_imagette);
+      allocation_tableau(ImgOut_imagette, OCTET, tailleBloc * tailleBloc);
+      resize_imagette(ImgIn_imagette, nH_imagette, nW_imagette, ImgOut_imagette, tailleBloc, tailleBloc);
+      
+      // Remplacer les pixels du bloc par ceux de l'imagette
+      for(int k = 0; k < tailleBloc; k++){
+        for(int p = 0; p < tailleBloc; p++){
+          ImgOut[pixelDepart + k * nW + p] = ImgOut_imagette[k * tailleBloc + p];
         }
       }
-      free(ImgIn_tile);free(ImgOut_imagette);
+      
+      free(ImgIn_imagette);
+      free(ImgOut_imagette);
     }
   }
 
-
-  ecrire_image_pgm(cNomImgEcrite, ImgOut,  nH, nW);
-  free(ImgIn); free(ImgOut);
+  ecrire_image_pgm(cNomImgEcrite, ImgOut, nH, nW);
+  free(ImgIn);
+  free(ImgOut);
 
   return 1;
 }
