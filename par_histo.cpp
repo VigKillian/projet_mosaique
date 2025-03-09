@@ -53,18 +53,20 @@ int main(int argc, char* argv[])
 
   // Charger l'histogramme de chaque imagette
   for(int idImagette = 1; idImagette <= NB_BASE_DE_DONNEE; idImagette++){
-    OCTET *ImgIn_imagette;
+    OCTET *ImgIn_imagette, *ImgOut_imagette;
     std::array<int,256> histoImagette{0};
     int nH_imagette, nW_imagette, nTaille_imagette;
     
     loadImagette(idImagette, ImgIn_imagette, nH_imagette, nW_imagette, nTaille_imagette);
+    allocation_tableau(ImgOut_imagette, OCTET, tailleBloc * tailleBloc);
+    resize_imagette(ImgIn_imagette, nH_imagette, nW_imagette, ImgOut_imagette, tailleBloc, tailleBloc);
     
-    for(int j = 0; j < nTaille_imagette; j++){
-      histoImagette[ImgIn_imagette[j]]++;
+    for(int j = 0; j < tailleBloc * tailleBloc; j++){
+      histoImagette[ImgOut_imagette[j]]++;
     }
 
     listeImagettes.push_back({idImagette, 0.f, histoImagette, 0});
-    free(ImgIn_imagette);
+    free(ImgIn_imagette);free(ImgOut_imagette);
   }
 
   // Remplacement des blocs de l'image originale
