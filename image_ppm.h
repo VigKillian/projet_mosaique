@@ -255,12 +255,54 @@ void resize_imagette(const unsigned char* img_in, int h_in, int w_in,unsigned ch
 }
 /*===========================================================================*/
 /*===========================================================================*/
+void resize_imagetteCouleur(const unsigned char* img_in, int h_in, int w_in, unsigned char* img_out, int h_out, int w_out) 
+{
+  int block_h = h_in / h_out;  // Facteur de réduction en hauteur
+  int block_w = w_in / w_out;  // Facteur de réduction en largeur
+
+  for (int y = 0; y < h_out; y++) {
+    for (int x = 0; x < w_out; x++) {
+      int sum_r = 0, sum_g = 0, sum_b = 0;
+      int count = 0;
+
+      for (int i = 0; i < block_h; i++) {
+        for (int j = 0; j < block_w; j++) {
+          int orig_y = y * block_h + i;
+          int orig_x = (x * block_w + j) * 3;  
+
+          sum_r += img_in[orig_y * w_in * 3 + orig_x];      
+          sum_g += img_in[orig_y * w_in * 3 + orig_x + 1];  
+          sum_b += img_in[orig_y * w_in * 3 + orig_x + 2]; 
+          count++;
+        }
+      }
+
+      int dest_index = (y * w_out + x) * 3;   
+      img_out[dest_index]     = sum_r / count;   
+      img_out[dest_index + 1] = sum_g / count;  
+      img_out[dest_index + 2] = sum_b / count; 
+    }
+  }
+}
+
+/*===========================================================================*/
+/*===========================================================================*/
 void loadImagette(int id_imagette,OCTET*& ImgIn_tile,int& nH_tile,int& nW_tile,int& nTaille_tile){
   string nom_file = "./img_tile/"+std::to_string(id_imagette)+".pgm";
   lire_nb_lignes_colonnes_image_pgm((char*)nom_file.c_str(),&nH_tile,&nW_tile);
   nTaille_tile = nW_tile*nH_tile;
   allocation_tableau(ImgIn_tile, OCTET, nTaille_tile);
   lire_image_pgm((char*)nom_file.c_str(), ImgIn_tile, nTaille_tile);
+}
+/*===========================================================================*/
+/*===========================================================================*/
+void loadImagette_cou(int id_imagette,OCTET*& ImgIn_tile,int& nH_tile,int& nW_tile,int& nTaille_tile){
+  string nom_file = "./img_tile_cou/i"+std::to_string(id_imagette)+".ppm";
+  lire_nb_lignes_colonnes_image_ppm((char*)nom_file.c_str(),&nH_tile,&nW_tile);
+  nTaille_tile = nW_tile*nH_tile;
+  int nTaille_tile3 = nTaille_tile*3;
+  allocation_tableau(ImgIn_tile, OCTET, nTaille_tile3);
+  lire_image_ppm((char*)nom_file.c_str(), ImgIn_tile, nTaille_tile);
 }
 /*===========================================================================*/
 /*===========================================================================*/
@@ -276,18 +318,16 @@ struct Imagette{
 };
 /*===========================================================================*/
 /*===========================================================================*/
+struct ImagetteCouleur{
+  int ID;
+  vector<float> moyen;
+  vector<vector<int>> histo;
+  bool isUsed;
 
-double calculer_PSNR(OCTET* ImgOriginale, OCTET* ImgReconstruite, int nTaille) {
-    double mse = 0.0;
-    for (int i = 0; i < nTaille; i++) {
-        double diff = ImgOriginale[i] - ImgReconstruite[i];
-        mse += diff * diff;
-    }
-    mse /= nTaille;
-    if (mse == 0) return INFINITY;
-    double psnr = 10 * log10((255.0 * 255.0) / mse);
-    return psnr;
-}
+    // constructeur par defaut
+  ImagetteCouleur(int id=0, vector<float> moy = vector<float>(3,0.f),vector<vector<int>> his =vector<vector<int>>(256, vector<int>(3, 0)), bool is_used = 0):
+    ID(id),moyen(moy),histo(his),isUsed(is_used){}
+};
 /*===========================================================================*/
 /*===========================================================================*/
 
@@ -301,4 +341,18 @@ struct ImagetteDis{
   ImagetteDis(int id=0, float moy = 0.f,std::vector<int> dis = std::vector<int>(256,0), bool is_used = 0):
     ID(id),moyen(moy),distribution(dis),isUsed(is_used){}
 };
+/*===========================================================================*/
+/*===========================================================================*/
+
+double calculer_PSNR(OCTET* ImgOriginale, OCTET* ImgReconstruite, int nTaille) {
+    double mse = 0.0;
+    for (int i = 0; i < nTaille; i++) {
+        double diff = ImgOriginale[i] - ImgReconstruite[i];
+        mse += diff * diff;
+    }
+    mse /= nTaille;
+    if (mse == 0) return INFINITY;
+    double psnr = 10 * log10((255.0 * 255.0) / mse);
+    return psnr;
+}
 /*===========================================================================*/
