@@ -297,7 +297,7 @@ void loadImagette(int id_imagette,OCTET*& ImgIn_tile,int& nH_tile,int& nW_tile,i
 /*===========================================================================*/
 /*===========================================================================*/
 void loadImagette_cou(int id_imagette,OCTET*& ImgIn_tile,int& nH_tile,int& nW_tile,int& nTaille_tile){
-  string nom_file = "./img_tile_cou/i"+std::to_string(id_imagette)+".ppm";
+  string nom_file = "./img_tile_color/i"+std::to_string(id_imagette)+".ppm";
   lire_nb_lignes_colonnes_image_ppm((char*)nom_file.c_str(),&nH_tile,&nW_tile);
   nTaille_tile = nW_tile*nH_tile;
   int nTaille_tile3 = nTaille_tile*3;

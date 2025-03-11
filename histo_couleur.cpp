@@ -46,20 +46,17 @@ int main(int argc, char *argv[]) {
   for(int idImagette = 1; idImagette <= NB_BASE_DE_DONNEE; idImagette++){
     OCTET *ImgIn_imagette, *ImgOut_imagette;
     int nH_imagette, nW_imagette, nTaille_imagette;
-    vector<float> moyen =  {0.f,0.f,0.f};
+    vector<vector<int>> histoImagette = vector<vector<int>>(256, vector<int>(3, 0));
     loadImagette_cou(idImagette, ImgIn_imagette, nH_imagette, nW_imagette, nTaille_imagette);
     allocation_tableau(ImgOut_imagette, OCTET, nTaille_imagette*3);
     resize_imagetteCouleur(ImgIn_imagette, nH_imagette, nW_imagette, ImgOut_imagette, tailleBloc, tailleBloc);
     
     for(int j = 0; j < tailleBloc*tailleBloc*3; j+=3){
       for(int canal = 0;canal<3;canal++){
-        moyen[canal] += ImgOut_imagette[j+canal];
+        histoImagette[ImgOut_imagette[j+canal]][canal]++;
       }
     }
-    for(int canal = 0;canal<3;canal++){
-      moyen[canal] /= (float) (tailleBloc*tailleBloc);
-    }
-    listeImagettes.push_back({idImagette,moyen,vector<vector<int>>(256, vector<int>(3, 0)),0});
+    listeImagettes.push_back({idImagette,{0.f,0.f,0.f},histoImagette,0});
     free(ImgIn_imagette);
   }
 
@@ -67,48 +64,61 @@ int main(int argc, char *argv[]) {
   {
     for(int j=0;j<= nW3 - 3*tailleBloc;j+=3*tailleBloc){
       int pixelDepart = i * nW3 + j;
-      vector<float> moyen_bloc  = vector<float>(3,0.f);
+      vector<vector<int>> histoBloc = vector<vector<int>>(256, vector<int>(3, 0));
       for(int k = 0;k<tailleBloc;k++){
         for(int p=0;p<tailleBloc*3;p+=3){
           for(int canal = 0;canal<3;canal++){
-            moyen_bloc[canal] +=ImgIn[pixelDepart+k*nW3+p+canal];
+            histoBloc[ImgIn[pixelDepart+k*nW3+p+canal]][canal]++;
           }
         }
       }
-      for(int canal = 0;canal<3;canal++){
-        moyen_bloc[canal] /=(float) (tailleBloc*tailleBloc);
-      }
+
       float distanceMin = FLT_MAX;
       int best_imagette_id = -1;
       if((bool)repetition){
-          for(ImagetteCouleur &imagette : listeImagettes){
-          float distance = 0.f;
-          for(int canal=0;canal<3;canal++){
-            distance += pow(imagette.moyen[canal]-moyen_bloc[canal],2);
+        for(ImagetteCouleur &imagette : listeImagettes){
+          vector<float> distanceBhattacharyya =vector<float>(3,0.f);
+          for(int couleur=0;couleur<256;couleur++){
+            for(int canal=0;canal<3;canal++){
+              distanceBhattacharyya[canal] += sqrt(histoBloc[couleur][canal] * imagette.histo[couleur][canal]);
+            }
           }
-          distance = sqrt(distance);
-          if(distance<distanceMin ){
-            distanceMin = distance;
+          float sumBhattacharyya = 0.f;
+          for(int canal=0;canal<3;canal++){
+            distanceBhattacharyya[canal] = -log(distanceBhattacharyya[canal]);
+            sumBhattacharyya+=distanceBhattacharyya[canal];
+          }
+          sumBhattacharyya/=3.f;
+          if(sumBhattacharyya<distanceMin ){
+            distanceMin = sumBhattacharyya;
             best_imagette_id = imagette.ID;
           }
+          
         }
       }else{
         for(ImagetteCouleur &imagette : listeImagettes){
-          float distance = 0.f;
-          for(int canal=0;canal<3;canal++){
-            distance += pow(imagette.moyen[canal]-moyen_bloc[canal],2);
+          vector<float> distanceBhattacharyya =vector<float>(3,0.f);
+          for(int couleur=0;couleur<256;couleur++){
+            for(int canal=0;canal<3;canal++){
+              distanceBhattacharyya[canal] += sqrt(histoBloc[couleur][canal] * imagette.histo[couleur][canal]);
+            }
           }
-          distance = sqrt(distance);
-          if(distance<distanceMin && !imagette.isUsed){
-            distanceMin = distance;
+          float sumBhattacharyya = 0.f;
+          for(int canal=0;canal<3;canal++){
+            distanceBhattacharyya[canal] = -log(distanceBhattacharyya[canal]);
+            sumBhattacharyya+=distanceBhattacharyya[canal];
+          }
+          sumBhattacharyya/=3.f;
+          if(sumBhattacharyya<distanceMin && !imagette.isUsed){
+            distanceMin = sumBhattacharyya;
             best_imagette_id = imagette.ID;
           }
-        }
-        // Mise à jour de l'état utilisé
-        for(ImagetteCouleur &imagette : listeImagettes){
-          if(imagette.ID == best_imagette_id){
-            imagette.isUsed = 1;
-            break; 
+          // Mise à jour de l'état utilisé
+          for(ImagetteCouleur &imagette : listeImagettes){
+            if(imagette.ID == best_imagette_id){
+              imagette.isUsed = 1;
+              break; 
+            }
           }
         }
       }
