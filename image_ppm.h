@@ -11,6 +11,8 @@
 #include <string>
 #include <iostream>
 #include <array>
+#include <chrono>
+#include <vector>
 using namespace std;
 
 #define allocation_tableau(nom, type, nombre) \
@@ -271,5 +273,32 @@ struct Imagette{
     // constructeur par defaut
   Imagette(int id=0, float moy = 0.f,std::array<int, 256> his = {0}, bool is_used = 0):
     ID(id),moyen(moy),histo(his),isUsed(is_used){}
+};
+/*===========================================================================*/
+/*===========================================================================*/
+
+double calculer_PSNR(OCTET* ImgOriginale, OCTET* ImgReconstruite, int nTaille) {
+    double mse = 0.0;
+    for (int i = 0; i < nTaille; i++) {
+        double diff = ImgOriginale[i] - ImgReconstruite[i];
+        mse += diff * diff;
+    }
+    mse /= nTaille;
+    if (mse == 0) return INFINITY;
+    double psnr = 10 * log10((255.0 * 255.0) / mse);
+    return psnr;
+}
+/*===========================================================================*/
+/*===========================================================================*/
+
+struct ImagetteDis{
+  int ID;
+  float moyen;
+  std::vector<int> distribution;
+  bool isUsed;
+
+    // constructeur par defaut
+  ImagetteDis(int id=0, float moy = 0.f,std::vector<int> dis = std::vector<int>(256,0), bool is_used = 0):
+    ID(id),moyen(moy),distribution(dis),isUsed(is_used){}
 };
 /*===========================================================================*/
