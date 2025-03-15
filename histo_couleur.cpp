@@ -29,7 +29,7 @@ int main(int argc, char *argv[]) {
   sscanf (argv[4],"%d",&repetition);
 
 
-
+  std::chrono::time_point<std::chrono::high_resolution_clock> _t0 = std::chrono::high_resolution_clock::now();
 
 
   OCTET *ImgIn,*ImgOut;
@@ -119,7 +119,7 @@ int main(int argc, char *argv[]) {
         for(ImagetteCouleur &imagette : listeImagettes){
           if(imagette.ID == best_imagette_id){
             imagette.isUsed = 1;
-            break; 
+            break;
           }
         }
       }
@@ -146,6 +146,12 @@ int main(int argc, char *argv[]) {
       free(ImgOut_imagette);
     }
   }
+
+  std::chrono::time_point<std::chrono::high_resolution_clock> _t1 = std::chrono::high_resolution_clock::now();
+  std::cout << "Photo-mosaïque produite en : "<<std::chrono::duration<double>(_t1-_t0).count() << "s" << std::endl;
+
+  std::cout<<"PSNR par rapport à l'image d'entrée : "<<calculer_PSNR(ImgIn, ImgOut, nTaille)<<"dB"<<std::endl;
+
   ecrire_image_ppm(cNomImgEcrite, ImgOut,  nH, nW);
   free(ImgIn); free(ImgOut);
   for(ImagetteCouleur &imagette : listeImagettes){
