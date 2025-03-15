@@ -97,6 +97,7 @@ int main(int argc, char *argv[]) {
         }
       }else{
         for(ImagetteCouleur &imagette : listeImagettes){
+          if(imagette.isUsed) continue;
           vector<float> distanceBhattacharyya =vector<float>(3,0.f);
           for(int couleur=0;couleur<256;couleur++){
             for(int canal=0;canal<3;canal++){
@@ -113,12 +114,12 @@ int main(int argc, char *argv[]) {
             distanceMin = sumBhattacharyya;
             best_imagette_id = imagette.ID;
           }
-          // Mise à jour de l'état utilisé
-          for(ImagetteCouleur &imagette : listeImagettes){
-            if(imagette.ID == best_imagette_id){
-              imagette.isUsed = 1;
-              break; 
-            }
+        }
+        // Mise à jour de l'état utilisé
+        for(ImagetteCouleur &imagette : listeImagettes){
+          if(imagette.ID == best_imagette_id){
+            imagette.isUsed = 1;
+            break; 
           }
         }
       }
@@ -147,6 +148,10 @@ int main(int argc, char *argv[]) {
   }
   ecrire_image_ppm(cNomImgEcrite, ImgOut,  nH, nW);
   free(ImgIn); free(ImgOut);
+  for(ImagetteCouleur &imagette : listeImagettes){
+    cout<<imagette.isUsed<<" ";
+  }
+  cout<<endl;
 
   return 1;
 }
