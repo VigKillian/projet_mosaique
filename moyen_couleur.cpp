@@ -42,6 +42,8 @@ int main(int argc, char *argv[]) {
   lire_image_ppm(cNomImgLue, ImgIn, nH * nW);
   allocation_tableau(ImgOut, OCTET, nTaille3);
 
+  std::chrono::time_point<std::chrono::high_resolution_clock> _t0 = std::chrono::high_resolution_clock::now();
+
   // Charger les imagettes et calculer leur moyenne de luminosité
   for(int idImagette = 1; idImagette <= NB_BASE_DE_DONNEE; idImagette++){
     OCTET *ImgIn_imagette, *ImgOut_imagette;
@@ -135,6 +137,12 @@ int main(int argc, char *argv[]) {
       free(ImgOut_imagette);
     }
   }
+
+  std::chrono::time_point<std::chrono::high_resolution_clock> _t1 = std::chrono::high_resolution_clock::now();
+  std::cout << "Photo-mosaïque produite en : "<<std::chrono::duration<double>(_t1-_t0).count() << "s" << std::endl;
+
+  std::cout<<"PSNR par rapport à l'image d'entrée : "<<calculer_PSNR(ImgIn, ImgOut, nTaille)<<"dB"<<std::endl;
+
   ecrire_image_ppm(cNomImgEcrite, ImgOut,  nH, nW);
   free(ImgIn); free(ImgOut);
 
