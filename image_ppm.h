@@ -322,11 +322,12 @@ struct ImagetteCouleur{
   int ID;
   vector<float> moyen;
   vector<vector<int>> histo;
+  vector<vector<int>> distribution;
   bool isUsed;
 
     // constructeur par defaut
-  ImagetteCouleur(int id=0, vector<float> moy = vector<float>(3,0.f),vector<vector<int>> his =vector<vector<int>>(256, vector<int>(3, 0)), bool is_used = 0):
-    ID(id),moyen(moy),histo(his),isUsed(is_used){}
+  ImagetteCouleur(int id=0, vector<float> moy = vector<float>(3,0.f),vector<vector<int>> his =vector<vector<int>>(256, vector<int>(3, 0)), vector<vector<int>> dis = vector<vector<int>>(256,vector<int>(3,0)),bool is_used = 0):
+    ID(id),moyen(moy),histo(his),distribution(dis),isUsed(is_used){}
 };
 /*===========================================================================*/
 /*===========================================================================*/

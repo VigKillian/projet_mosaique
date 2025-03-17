@@ -56,7 +56,7 @@ int main(int argc, char *argv[]) {
         histoImagette[ImgOut_imagette[j+canal]][canal]++;
       }
     }
-    listeImagettes.push_back({idImagette,{0.f,0.f,0.f},histoImagette,0});
+    listeImagettes.push_back({idImagette,{0.f,0.f,0.f},histoImagette,vector<vector<int>>(256, vector<int>(3, 0)),0});
     free(ImgIn_imagette);
   }
 
@@ -154,10 +154,7 @@ int main(int argc, char *argv[]) {
 
   ecrire_image_ppm(cNomImgEcrite, ImgOut,  nH, nW);
   free(ImgIn); free(ImgOut);
-  for(ImagetteCouleur &imagette : listeImagettes){
-    cout<<imagette.isUsed<<" ";
-  }
-  cout<<endl;
+  
 
   return 1;
 }

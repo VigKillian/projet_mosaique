@@ -128,7 +128,7 @@ int main(int argc, char *argv[]) {
       for(int k = 0; k < tailleBloc; k++){
         for(int p = 0; p < tailleBloc*3; p+=3){
           for (int canal = 0;canal<3;canal++){
-            ImgOut[pixelDepart + k * nW3 + p+canal] = ImgOut_imagette[k * tailleBloc*3 + p+canal];
+            ImgOut[pixelDepart + k * nW3 + p+canal] = 0.7*ImgOut_imagette[k * tailleBloc*3 + p+canal] + 0.3*ImgIn[pixelDepart + k * nW3 + p+canal];
           }
         }
       }
