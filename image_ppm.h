@@ -356,4 +356,70 @@ double calculer_PSNR(OCTET* ImgOriginale, OCTET* ImgReconstruite, int nTaille) {
     double psnr = 10 * log10((255.0 * 255.0) / mse);
     return psnr;
 }
+
 /*===========================================================================*/
+
+int egal_inverse(double* F, OCTET val){
+    if(val == 255) return 255;
+    double v = val / (double) 255;
+    int i = 0;
+    while(F[i]<v){
+        if(i>255){
+            printf("Erreur dépassement\n"); 
+            exit (1) ;
+        }
+        i++;
+    }
+    return i;
+}
+
+/*===========================================================================*/
+
+void specification(OCTET * ImgIn, OCTET* ImgRef, OCTET* ImgOut, int nH, int nW){
+   int nTaille = nH*nW;
+
+   double ddpIn[256];
+    double ddpRef[256];
+
+    //Init
+    
+    for(int i = 0; i<256; i++){
+        ddpIn[i] = 0.;
+        ddpRef[i] = 0.;
+    }
+
+    //Calcul des ddp pour les deux images d'entrée
+
+    for(int i = 0; i<nTaille; i++){
+        ddpIn[ImgIn[i]] += 1.0;
+    }
+
+    for(int i = 0; i<nTaille; i++){
+        ddpRef[ImgRef[i]] += 1.0;
+    }
+
+    //Division par la taille
+
+    for(int i = 0; i<256; i++){
+        ddpIn[i] /= (double)nTaille;
+        ddpRef[i] /= (double)nTaille;
+    }
+
+    //Init répartition
+
+    double F[256];
+    double FRef[256];
+    F[0] = ddpIn[0];
+    FRef[0] = ddpRef[0];
+    
+    for(int i = 1; i<256; i++){
+        F[i] = F[i-1] + ddpIn[i];
+        FRef[i] = FRef[i-1] + ddpRef[i];
+    }
+    
+    for(int i = 0; i<nTaille; i++){
+        ImgOut[i] = egal_inverse(FRef, F[ImgIn[i]]*255);
+    }
+
+}
+
