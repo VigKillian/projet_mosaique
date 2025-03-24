@@ -1,0 +1,7 @@
+./exe/par_moyen img_in_out/girafes.pgm img_in_out/moyen/girafes_16.pgm 16
+Photo-mosaïque produite en : 49.5967s
+PSNR par rapport à l'image d'entrée : 13.0761dB
+
+./exe/cuda_par_moyen img_in_out/girafes.pgm img_in_out/moyen/girafes_cuda_16.pgm 16
+Photo-mosaïque produite en : 28.4883s
+PSNR par rapport à l'image d'entrée : 13.0761dB
