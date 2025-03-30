@@ -97,6 +97,8 @@ int main(int argc, char* argv[])
     
     free(ImgIn_imagette);
   }
+  std::chrono::time_point<std::chrono::high_resolution_clock> _t1 = std::chrono::high_resolution_clock::now();
+  std::cout << "resize() et compter histo des imagettes en : "<<std::chrono::duration<double>(_t1-_t0).count() << "s" << std::endl;
 
 
   // Remplacement des blocs de l'image originale
@@ -151,8 +153,10 @@ int main(int argc, char* argv[])
   ecrire_image_pgm(cNomImgEcrite, ImgOut, nH, nW);
   
 
-  std::chrono::time_point<std::chrono::high_resolution_clock> _t1 = std::chrono::high_resolution_clock::now();
-  std::cout << "Photo-mosaïque produite en : "<<std::chrono::duration<double>(_t1-_t0).count() << "s" << std::endl;
+  std::chrono::time_point<std::chrono::high_resolution_clock> _t2 = std::chrono::high_resolution_clock::now();
+  std::cout << "comparer et distribuer en : "<<std::chrono::duration<double>(_t2-_t1).count() << "s" << std::endl;
+
+  std::cout << "total en : "<<std::chrono::duration<double>(_t2-_t0).count() << "s" << std::endl;
 
   std::cout<<"PSNR par rapport à l'image d'entrée : "<<calculer_PSNR(ImgIn, ImgOut, nTaille)<<"dB"<<std::endl;
   free(ImgIn);

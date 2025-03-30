@@ -5,3 +5,14 @@ PSNR par rapport à l'image d'entrée : 13.0761dB
 ./exe/cuda_par_moyen img_in_out/girafes.pgm img_in_out/moyen/girafes_cuda_16.pgm 16
 Photo-mosaïque produite en : 28.4883s
 PSNR par rapport à l'image d'entrée : 13.0761dB
+
+
+par_histo_normal : 
+    premier fois (rien de données en mémoire)
+        resize() et compter histo des imagettes en : 76.5447s
+        comparer et distribuer en : 29.8579s
+        total en : 106.403s
+    deuxième fois 
+        resize() et compter histo des imagettes en : 25.5032s
+        comparer et distribuer en : 29.2003s
+        total en : 54.7035s
