@@ -13,7 +13,7 @@ using namespace std;
 
 int main(int argc, char *argv[]) {
   char cNomImgLue[250], cNomImgEcrite[250];
-  int nH, nW,nW3, nTaille ,nR,nG,nB,repetition;
+  int nH, nW,nW3, nTaille ,repetition;
   vector<ImagetteCouleur> listeImagettes;
   int tailleBloc;
 

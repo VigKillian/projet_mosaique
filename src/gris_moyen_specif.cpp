@@ -94,7 +94,6 @@ int main(int argc, char* argv[])
       allocation_tableau(blocIn, OCTET, tailleBloc*tailleBloc);
       allocation_tableau(blocSpecifie, OCTET, tailleBloc*tailleBloc);
 
-      cout<<"a"<<endl;
       for(int k = 0; k < tailleBloc; k++){
         for(int p = 0; p < tailleBloc; p++){
           blocIn[k * tailleBloc + p] = ImgIn[pixelDepart + k * nW + p];

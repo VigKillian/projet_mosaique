@@ -13,7 +13,7 @@ using namespace std;
 
 int main(int argc, char *argv[]) {
   char cNomImgLue[250], cNomImgEcrite[250];
-  int nH, nW,nW3, nTaille ,nR,nG,nB,repetition;
+  int nH, nW,nW3, nTaille ,repetition;
   vector<ImagetteCouleur> listeImagettes;
   int tailleBloc;
 
@@ -29,7 +29,7 @@ int main(int argc, char *argv[]) {
   sscanf (argv[4],"%d",&repetition);
 
 
-
+  std::chrono::time_point<std::chrono::high_resolution_clock> _t0 = std::chrono::high_resolution_clock::now();
 
 
   OCTET *ImgIn,*ImgOut;
@@ -42,26 +42,21 @@ int main(int argc, char *argv[]) {
   lire_image_ppm(cNomImgLue, ImgIn, nH * nW);
   allocation_tableau(ImgOut, OCTET, nTaille3);
 
-  std::chrono::time_point<std::chrono::high_resolution_clock> _t0 = std::chrono::high_resolution_clock::now();
-
   // Charger les imagettes et calculer leur moyenne de luminosité
   for(int idImagette = 1; idImagette <= NB_BASE_DE_DONNEE; idImagette++){
     OCTET *ImgIn_imagette, *ImgOut_imagette;
     int nH_imagette, nW_imagette, nTaille_imagette;
-    vector<float> moyen =  {0.f,0.f,0.f};
+    vector<vector<int>> distrImagette = vector<vector<int>>(tailleBloc*tailleBloc,vector<int>(3,0));
     loadImagette_cou(idImagette, ImgIn_imagette, nH_imagette, nW_imagette, nTaille_imagette);
     allocation_tableau(ImgOut_imagette, OCTET, nTaille_imagette*3);
     resize_imagetteCouleur(ImgIn_imagette, nH_imagette, nW_imagette, ImgOut_imagette, tailleBloc, tailleBloc);
     
     for(int j = 0; j < tailleBloc*tailleBloc*3; j+=3){
       for(int canal = 0;canal<3;canal++){
-        moyen[canal] += ImgOut_imagette[j+canal];
+        distrImagette[j/3][canal] = ImgOut_imagette[j+canal];
       }
     }
-    for(int canal = 0;canal<3;canal++){
-      moyen[canal] /= (float) (tailleBloc*tailleBloc);
-    }
-    listeImagettes.push_back({idImagette,moyen,vector<vector<int>>(256, vector<int>(3, 0)),vector<vector<int>>(256, vector<int>(3, 0)),0});
+    listeImagettes.push_back({idImagette,{0.f,0.f,0.f},vector<vector<int>>(256, vector<int>(3, 0)),distrImagette,0});
     free(ImgIn_imagette);
   }
 
@@ -69,48 +64,56 @@ int main(int argc, char *argv[]) {
   {
     for(int j=0;j<= nW3 - 3*tailleBloc;j+=3*tailleBloc){
       int pixelDepart = i * nW3 + j;
-      vector<float> moyen_bloc  = vector<float>(3,0.f);
+      vector<vector<int>> blocDistribution(tailleBloc * tailleBloc, vector<int>(3,0));
       for(int k = 0;k<tailleBloc;k++){
         for(int p=0;p<tailleBloc*3;p+=3){
           for(int canal = 0;canal<3;canal++){
-            moyen_bloc[canal] +=ImgIn[pixelDepart+k*nW3+p+canal];
+            blocDistribution[(k * tailleBloc) + (p/3)][canal] = ImgIn[pixelDepart+k*nW3+p+canal];
           }
         }
       }
-      for(int canal = 0;canal<3;canal++){
-        moyen_bloc[canal] /=(float) (tailleBloc*tailleBloc);
-      }
+
       float distanceMin = FLT_MAX;
       int best_imagette_id = -1;
       if((bool)repetition){
-          for(ImagetteCouleur &imagette : listeImagettes){
-          float distance = 0.f;
-          for(int canal=0;canal<3;canal++){
-            distance += pow(imagette.moyen[canal]-moyen_bloc[canal],2);
+        for(ImagetteCouleur &imagette : listeImagettes){
+          float distanceTotale = 0.f;
+          for(int pixel = 0; pixel < tailleBloc * tailleBloc; pixel++) {
+            float distance = 0.f;
+            for(int canal=0;canal<3;canal++){
+              distance += pow(imagette.distribution[pixel][canal] - blocDistribution[pixel][canal], 2);
+            }
+            distance = (float)sqrt(distance);
+            distanceTotale += distance;
           }
-          distance = sqrt(distance);
-          if(distance<distanceMin ){
-            distanceMin = distance;
+          if (distanceTotale < distanceMin) {
+            distanceMin = distanceTotale;
             best_imagette_id = imagette.ID;
           }
+          
         }
       }else{
         for(ImagetteCouleur &imagette : listeImagettes){
-          float distance = 0.f;
-          for(int canal=0;canal<3;canal++){
-            distance += pow(imagette.moyen[canal]-moyen_bloc[canal],2);
+          float distanceTotale = 0.f;
+          for(int pixel = 0; pixel < tailleBloc * tailleBloc; pixel++) {
+            float distance = 0.f;
+            for(int canal=0;canal<3;canal++){
+              distance += pow(imagette.distribution[pixel][canal] - blocDistribution[pixel][canal], 2);
+            }
+            distance = (float)sqrt(distance);
+            distanceTotale += distance;
           }
-          distance = sqrt(distance);
-          if(distance<distanceMin && !imagette.isUsed){
-            distanceMin = distance;
+          if (distanceTotale < distanceMin && !imagette.isUsed) {
+            distanceMin = distanceTotale;
             best_imagette_id = imagette.ID;
           }
+          
         }
         // Mise à jour de l'état utilisé
         for(ImagetteCouleur &imagette : listeImagettes){
           if(imagette.ID == best_imagette_id){
             imagette.isUsed = 1;
-            break; 
+            break;
           }
         }
       }
@@ -145,6 +148,8 @@ int main(int argc, char *argv[]) {
 
   ecrire_image_ppm(cNomImgEcrite, ImgOut,  nH, nW);
   free(ImgIn); free(ImgOut);
+  
+  cout<<endl;
 
   return 1;
 }
