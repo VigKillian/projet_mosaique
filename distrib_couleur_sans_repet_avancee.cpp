@@ -12,21 +12,22 @@
 using namespace std;
 
 int main(int argc, char *argv[]) {
-  char cNomImgLue[250], cNomImgEcrite[250];
+  char cNomImgLue[250], cNomImageSeuillee[250], cNomImgEcrite[250];
   int nH, nW,nW3, nTaille ,nR,nG,nB,repetition;
   vector<ImagetteCouleur> listeImagettes;
   int tailleBloc;
 
 
-  if (argc != 5) {
-    printf("Usage: ImageIn.ppm mageOut.ppm taille_bloc avec_repetition?[1/0]\n");
+  if (argc != 6) {
+    printf("Usage: ImageIn.ppm ImageOut.ppm ImgSeuillee.pgm taille_bloc avec_repetition?[1/0]\n");
     exit(1);
   }
 
   sscanf(argv[1], "%s", cNomImgLue);
   sscanf(argv[2], "%s", cNomImgEcrite);
-  sscanf (argv[3],"%d",&tailleBloc);
-  sscanf (argv[4],"%d",&repetition);
+  sscanf(argv[3], "%s", cNomImageSeuillee);
+  sscanf (argv[4],"%d",&tailleBloc);
+  sscanf (argv[5],"%d",&repetition);
 
 
   std::chrono::time_point<std::chrono::high_resolution_clock> _t0 = std::chrono::high_resolution_clock::now();
@@ -49,6 +50,7 @@ int main(int argc, char *argv[]) {
   OCTET* ImgSeuil;
   allocation_tableau(ImgSeuil, OCTET, nTaille);
   seuil_otsu(ImgNDG, ImgSeuil, nH, nW);
+  ecrire_image_pgm(cNomImageSeuillee, ImgSeuil, nH, nW);
   free(ImgNDG);
 
   // Charger les imagettes et calculer leur moyenne de luminosité
@@ -83,7 +85,7 @@ int main(int argc, char *argv[]) {
           if(ImgSeuil[i*nW+(j/3) + k*nW+p] == 0) nbZoneImp++;
         }
       }
-      if(nbZoneImp >= (tailleBloc*tailleBloc)/2) zoneImportante = true;
+      if(nbZoneImp >= 1) zoneImportante = true;
       if(zoneImportante){ // Si la zone n'est pas importante, skip 
         int pixelDepart = i * nW3 + j;
         vector<vector<int>> blocDistribution(tailleBloc * tailleBloc, vector<int>(3,0));
@@ -178,7 +180,7 @@ int main(int argc, char *argv[]) {
           if(ImgSeuil[i*nW+(j/3) + k*nW+p] == 0) nbZoneImp++;
         }
       }
-      if(nbZoneImp >= (tailleBloc*tailleBloc)/2) zoneImportante = true;
+      if(nbZoneImp >= 1) zoneImportante = true;
       if(!zoneImportante){ // Si la zone n'est pas importante, skip 
         int pixelDepart = i * nW3 + j;
         vector<vector<int>> blocDistribution(tailleBloc * tailleBloc, vector<int>(3,0));
