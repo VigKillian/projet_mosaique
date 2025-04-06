@@ -9,9 +9,11 @@
 #include <cmath>
 #include <float.h>
 #include <chrono>
+#include <fstream>
 #define NB_BASE_DE_DONNEE 10000
 using namespace std;
-
+#include <atomic>
+std::atomic<float> progress = 0.0f;
 
 
 int main(int argc, char* argv[])
@@ -27,7 +29,16 @@ int main(int argc, char* argv[])
     }
 
   std::chrono::time_point<std::chrono::high_resolution_clock> _t0 = std::chrono::high_resolution_clock::now();
-
+  std::ofstream resetProgress0("progress0.txt");
+  if (resetProgress0.is_open()) {
+      resetProgress0 << 0.0f;
+      resetProgress0.close();
+  }
+  std::ofstream resetProgress1("progress1.txt");
+  if (resetProgress1.is_open()) {
+      resetProgress1 << 0.0f;
+      resetProgress1.close();
+  }
   sscanf (argv[1],"%s",cNomImgLue) ;
   sscanf (argv[2],"%s",cNomImgEcrite);
   sscanf (argv[3],"%d",&tailleBloc);
@@ -41,8 +52,16 @@ int main(int argc, char* argv[])
   lire_image_pgm(cNomImgLue, ImgIn, nTaille);
   allocation_tableau(ImgOut, OCTET, nTaille);
 
+  int cptImagette = 0;
   // Charger l'histogramme de chaque imagette
   for(int idImagette = 1; idImagette <= NB_BASE_DE_DONNEE; idImagette++){
+    cptImagette++;
+    float currentProgress = static_cast<float>(cptImagette) / NB_BASE_DE_DONNEE;      
+    std::ofstream progressFile0("progress0.txt");
+    if (progressFile0.is_open()) {
+        progressFile0 << currentProgress;
+        progressFile0.close();
+    }
     OCTET *ImgIn_imagette, *ImgOut_imagette;
     std::array<int,256> histoImagette{0};
     int nH_imagette, nW_imagette, nTaille_imagette;
@@ -59,9 +78,19 @@ int main(int argc, char* argv[])
     free(ImgIn_imagette);free(ImgOut_imagette);
   }
 
+  int cptBloc=0;
+  int nbBlocTotal = nTaille/(tailleBloc*tailleBloc);
   // Remplacement des blocs de l'image originale
   for(int i = 0; i <= nH - tailleBloc; i += tailleBloc){
     for(int j = 0; j <= nW - tailleBloc; j += tailleBloc){
+      cptBloc++;
+      float currentProgress = static_cast<float>(cptBloc) / nbBlocTotal;
+      
+      std::ofstream progressFile1("progress1.txt");
+      if (progressFile1.is_open()) {
+          progressFile1 << currentProgress;
+          progressFile1.close();
+      }
       int pixelDepart = i * nW + j;
       std::array<int, 256> histoBloc{0};
 

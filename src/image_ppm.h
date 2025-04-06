@@ -423,3 +423,100 @@ void specification(OCTET * ImgIn, OCTET* ImgRef, OCTET* ImgOut, int nH, int nW){
 
 }
 
+/*===========================================================================*/
+
+
+void ndg(OCTET* ImgIn, OCTET* ImgOut, int nH, int nW){
+   for(int i = 0; i<nH*nW; i++){
+        ImgOut[i] = (ImgIn[3*i]*0.299+ImgIn[3*i+1]*0.587+ImgIn[3*i+2]*0.114);
+    }
+}
+
+
+/*===========================================================================*/
+
+
+void seuil_otsu(OCTET* ImgIn, OCTET* ImgOut, int nH, int nW){
+   int nTaille = nH*nW;
+   int S;
+   int histo[256]; 
+    for(int i=0; i<256; i++){
+        histo[i]=0;
+    }
+
+    for (int i=0; i < nH; i++)
+        for (int j=0; j < nW; j++)
+            {
+                histo[ImgIn[i*nW+j]] +=1;
+            }
+    
+    float somme = 0;
+    for(int i=0; i<256; i++){
+        somme += histo[i] * i;
+    }
+
+    float q1 = 0, q2 = 0, sommeB = 0, var_max = 0;
+    for(int i=0; i<256; i++){
+        q1 += histo[i];
+        if(q1 == 0) continue;
+        q2 = nTaille - q1;
+        if(q2 == 0) break;
+
+        sommeB += histo[i] * i;
+        float mu1 = (float)sommeB / q1;
+        float mu2 = (float)(somme - sommeB) / q2;
+
+
+        float sigmab = q1 * q2 * (mu1 - mu2) * (mu1 - mu2);
+        
+        if(sigmab > var_max){
+            var_max = sigmab;
+            S = i;
+        }
+    }
+
+    for (int i=0; i < nH; i++)
+    for (int j=0; j < nW; j++)
+        {
+            if ( ImgIn[i*nW+j] <= S) ImgOut[i*nW+j]=255; else ImgOut[i*nW+j]=0;
+        }
+}
+
+/*===========================================================================*/
+
+void dilatation(OCTET* ImgIn, int nH, int nW, int nbIte){
+   
+   for(int i =0; i<nbIte; i++){
+      OCTET* ImgOut;
+      allocation_tableau(ImgOut, OCTET, nH * nW);
+
+      for (int i=0; i < nH; i++)
+         for (int j=0; j < nW; j++){
+            ImgOut[i*nW+j] = ImgIn[i*nW+j];
+         }
+
+      for (int i=1; i < nH-1; i++)
+         for (int j=1; j < nW-1; j++){
+            if (ImgIn[(i-1)*nW+(j-1)] == 0 ||
+               ImgIn[(i-1)*nW+(j)] == 0 || 
+               ImgIn[(i-1)*nW+(j+1)] == 0 ||
+               ImgIn[(i)*nW+(j-1)] == 0 ||
+               ImgIn[(i)*nW+(j)] == 0 ||
+               ImgIn[(i)*nW+(j+1)] == 0 ||
+               ImgIn[(i+1)*nW+(j-1)] == 0 ||
+               ImgIn[(i+1)*nW+(j)] == 0 ||
+               ImgIn[(i+1)*nW+(j+1)] == 0){
+                     ImgOut[i*nW+j] = 0;
+               }
+               else{
+                     ImgOut[i*nW+j] = 255;
+               }
+         }
+
+      for (int i=0; i < nH; i++)
+         for (int j=0; j < nW; j++){
+            ImgIn[i*nW+j] = ImgOut[i*nW+j];
+         }
+      free(ImgOut);
+   }
+}

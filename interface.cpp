@@ -10,6 +10,7 @@
 #include <filesystem>
 #include <cstdlib>  // for system()
 #include <thread>
+#include <fstream>
 #define STB_IMAGE_IMPLEMENTATION
 #include "stb_image.h"
 
@@ -28,6 +29,13 @@ GLuint LoadTextureFromFile(const char* filename, int& width, int& height) {
 
     stbi_image_free(image_data);
     return tex;
+}
+
+float ReadProgressFromFile(const std::string& filename) {
+    std::ifstream f(filename);
+    float progress = 0.0f;
+    if (f >> progress) return progress;
+    return 0.0f;
 }
 
 int main() {
@@ -131,6 +139,13 @@ int main() {
             std::cout << "Commande: " << cmd << std::endl;
             runCommandAsync(cmd);
         }
+        ImGui::SameLine();
+        if (ImGui::Button("Triche spécification") && !taskRunning) {
+            std::string exec = "./exe/gris_moyen_specif" ;
+            std::string cmd = exec + std::string(" ") + inputPath + " " + outputPath + " " + tailleBlocStr;
+            std::cout << "Commande: " << cmd << std::endl;
+            runCommandAsync(cmd);
+        }
 //==========================================================================================================
         ImGui::Separator();
         ImGui::Text("Les méthodes de niveau de couleur");
@@ -164,25 +179,44 @@ int main() {
             std::cout << "Commande: " << cmd << std::endl;
             runCommandAsync(cmd);
         }
-//==========================================================================================================
-        ImGui::Separator();
-        ImGui::Text("Autres approches");
+        ImGui::SameLine();
         if (ImGui::Button("Triche moyenne pondérée") && !taskRunning) {
             std::string exec = "./exe/couleur_moyen_triche" ;
-            std::string cmd = exec + std::string(" ") + inputPath + " " + outputPath + " " + tailleBlocStr + " 0";
-            std::cout << "Commande: " << cmd << std::endl;
-            runCommandAsync(cmd);
-        }
-        ImGui::SameLine();
-        if (ImGui::Button("Triche spécification") && !taskRunning) {
-            std::string exec = "./exe/gris_moyen_specif" ;
-            std::string cmd = exec + std::string(" ") + inputPath + " " + outputPath + " " + tailleBlocStr;
+            std::string cmd;
+            if(repetition_couleur)
+                cmd = exec + std::string(" ") + inputPath + " " + outputPath + " " + tailleBlocStr + " 1";
+            else
+                cmd = exec + std::string(" ") + inputPath + " " + outputPath + " " + tailleBlocStr + " 0";
             std::cout << "Commande: " << cmd << std::endl;
             runCommandAsync(cmd);
         }
 //==========================================================================================================
+        ImGui::Separator();
+        ImGui::Text("Autres approches: détecter l'objet");
+        if (ImGui::Button("moyen avancé") && !taskRunning) {
+            std::string exec = "./exe/couleur_moyen_avance" ;
+            std::string cmd;
+            cmd = exec + std::string(" ") + inputPath + " " + outputPath + " " + tailleBlocStr + " 0";
+            std::cout << "Commande: " << cmd << std::endl;
+            runCommandAsync(cmd);
+        } 
+        ImGui::SameLine();
+        if (ImGui::Button("distribution avancé") && !taskRunning) {
+            std::string exec = "./exe/couleur_distrib_avancee" ;
+            std::string cmd;
+            cmd = exec + std::string(" ") + inputPath + " " + outputPath + " "+"./img_in_out/cou_dis/poisson_seuille.pgm " + tailleBlocStr + " 0";
+            std::cout << "Commande: " << cmd << std::endl;
+            runCommandAsync(cmd);
+        } 
+//==========================================================================================================
         if (taskRunning) {
+            float progress0 = ReadProgressFromFile("progress0.txt");
+            ImGui::Text("\nLeture d'imagette et changement de taille en cours...");
+            ImGui::ProgressBar(progress0, ImVec2(0.0f, 0.0f));
+            
+            float progress1 = ReadProgressFromFile("progress1.txt");
             ImGui::Text("\nTraitement en cours...");
+            ImGui::ProgressBar(progress1, ImVec2(0.0f, 0.0f));
         }
 
         ImGui::End();
