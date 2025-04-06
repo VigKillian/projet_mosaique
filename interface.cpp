@@ -1,10 +1,10 @@
 // Example: GUI with Dear ImGui + file selector + image preview + run C++ program (non-blocking)
 // Dependencies: ImGui, GLFW, stb_image.h (for image loading)
 
-#include "./imgui/imgui.h"
-#include "./imgui/imgui_impl_glfw.h"
-#include "./imgui/imgui_impl_opengl3.h"
-#include "./imgui/ImGuiFileDialog.h"
+#include "./Imgui/imgui.h"
+#include "./Imgui/imgui_impl_glfw.h"
+#include "./Imgui/imgui_impl_opengl3.h"
+#include "./Imgui/ImGuiFileDialog.h"
 #include <GLFW/glfw3.h>
 #include <iostream>
 #include <filesystem>
