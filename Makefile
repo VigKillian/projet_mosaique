@@ -1,16 +1,16 @@
 CXX = g++
-CXXFLAGS = -std=c++17 -I./imgui -I./imgui/backends -I. -Wall
+CXXFLAGS = -std=c++17 -I./Imgui -I./Imgui/backends -I. -Wall
 TARGET = app
 
 SRC = interface.cpp \
-      imgui/imgui.cpp \
-      imgui/imgui_draw.cpp \
-      imgui/imgui_tables.cpp \
-      imgui/imgui_widgets.cpp \
-      imgui/imgui_demo.cpp \
-      imgui/backends/imgui_impl_glfw.cpp \
-      imgui/backends/imgui_impl_opengl3.cpp\
-      imgui/ImGuiFileDialog.cpp
+      Imgui/imgui.cpp \
+      Imgui/imgui_draw.cpp \
+      Imgui/imgui_tables.cpp \
+      Imgui/imgui_widgets.cpp \
+      Imgui/imgui_demo.cpp \
+      Imgui/backends/imgui_impl_glfw.cpp \
+      Imgui/backends/imgui_impl_opengl3.cpp\
+      Imgui/ImGuiFileDialog.cpp
 
 LIBS = -lGL -lglfw -ldl -lpthread -lX11
 
