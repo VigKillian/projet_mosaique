@@ -2,6 +2,12 @@
 
 ## Viguier Killian - Wang Xihao
 
+Pour executer:
+-
+    $make clean
+    $make
+    $./app
+
 Pour utiliser cuda: 
 -   
     nvcc -o exe/nom_program_cuda nom_fichier_cuda.cu
